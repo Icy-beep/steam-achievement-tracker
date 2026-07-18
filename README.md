@@ -29,7 +29,7 @@
 
 1. Перейдите по ссылке:
 
-   **👉 https://pixeldrain.com/u/ANboK3bs**
+   **👉 [https://pixeldrain.com/u/ANboK3bs](https://pixeldrain.com/u/EWyA6q3K)**
 
 2. Скачайте архив.
 
