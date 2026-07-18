@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+*$py.class
+steam_profiles.json
+steam_games.db
+.env
+.idea/
+venv/
+env/
+ENV/
