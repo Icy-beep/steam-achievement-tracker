@@ -8,3 +8,6 @@ steam_games.db
 venv/
 env/
 ENV/
+SteamAchievementTracker.spec
+build/
+dist/
