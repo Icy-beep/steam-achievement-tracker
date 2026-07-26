@@ -9,7 +9,6 @@ import sqlite3
 
 CONFIG_FILE = "steam_profiles.json"
 DB_FILE = "steam_games.db"
-
 STEAM_API_ACHIEVEMENTS = "https://api.steampowered.com/ISteamUserStats/GetPlayerAchievements/v1/"
 STEAM_API_SCHEMA = "https://api.steampowered.com/ISteamUserStats/GetSchemaForGame/v2/"
 
@@ -109,11 +108,21 @@ class SteamAchievementApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Steam Achievement Tracker")
-        self.root.geometry("750x700")
+        self.root.geometry("950x700")
         self.game_name = ""
+        self.app_id = ""
+        self.selected_achievement_name = None  # Сохраняем выбранное достижение
         init_db()
+
         self.context_menu = tk.Menu(self.root, tearoff=0)
         self.context_menu.add_command(label="Вставить", command=self.paste_to_focused_widget)
+
+        # Контекстное меню для ачивок — создаём динамически
+        self.achievement_context_menu = tk.Menu(self.root, tearoff=0)
+        self.achievement_context_menu.add_command(label="🔍 Найти гайд", command=self.open_guide_from_context)
+        self.achievement_context_menu.add_command(label="📋 Копировать название", command=self.copy_achievement_name)
+        self.achievement_context_menu.add_command(label="🌐 Открыть в Steam", command=self.open_in_steam)
+
         self.create_input_fields()
         self.create_tabs()
         self.setup_hotkeys()
@@ -173,10 +182,10 @@ class SteamAchievementApp:
                                   fg="white", font=("Arial", 11, "bold"))
         self.load_btn.grid(row=6, column=0, columnspan=3, pady=10, sticky="we")
 
-    def add_scrollbar(self, frame, listbox):
-        scrollbar = tk.Scrollbar(frame, orient="vertical", command=listbox.yview)
+    def add_scrollbar(self, frame, widget):
+        scrollbar = tk.Scrollbar(frame, orient="vertical", command=widget.yview)
         scrollbar.pack(side="right", fill="y", pady=5)
-        listbox.config(yscrollcommand=scrollbar.set)
+        widget.config(yscrollcommand=scrollbar.set)
 
     def on_game_search(self, event):
         query = self.game_entry.get().strip()
@@ -202,15 +211,18 @@ class SteamAchievementApp:
         db_window = tk.Toplevel(self.root)
         db_window.title("Управление базой игр")
         db_window.geometry("700x500")
-        tk.Label(db_window, text="📚 База данных игр Steam", font=("Arial", 14, "bold")).pack(pady=10)
+
+        tk.Label(db_window, text=" База данных игр Steam", font=("Arial", 14, "bold")).pack(pady=10)
 
         tree_frame = tk.Frame(db_window)
         tree_frame.pack(fill="both", expand=True, padx=10, pady=5)
+
         tree = ttk.Treeview(tree_frame, columns=("name", "app_id"), show="headings", height=15)
         tree.heading("name", text="Название игры");
         tree.heading("app_id", text="App ID")
         tree.column("name", width=450);
         tree.column("app_id", width=100)
+
         scrollbar = ttk.Scrollbar(tree_frame, orient="vertical", command=tree.yview)
         tree.config(yscrollcommand=scrollbar.set)
         tree.pack(side="left", fill="both", expand=True);
@@ -263,18 +275,37 @@ class SteamAchievementApp:
     def create_tabs(self):
         self.notebook = ttk.Notebook(self.root)
         self.notebook.pack(expand=True, fill="both", padx=10, pady=5)
+
+        # Вкладка открытых достижений
         self.tab_unlocked = ttk.Frame(self.notebook)
         self.notebook.add(self.tab_unlocked, text="Открытые (0)")
-        self.unlocked_listbox = tk.Listbox(self.tab_unlocked, font=("Arial", 10))
-        self.unlocked_listbox.pack(expand=True, fill="both", side="left", padx=5, pady=5)
-        self.add_scrollbar(self.tab_unlocked, self.unlocked_listbox)
+
+        self.unlocked_tree = ttk.Treeview(self.tab_unlocked, columns=("name", "description"), show="headings",
+                                          height=20)
+        self.unlocked_tree.heading("name", text="Достижение")
+        self.unlocked_tree.heading("description", text="Описание")
+        self.unlocked_tree.column("name", width=250)
+        self.unlocked_tree.column("description", width=450)
+        self.unlocked_tree.pack(side="left", fill="both", expand=True, padx=5, pady=5)
+        self.add_scrollbar(self.tab_unlocked, self.unlocked_tree)
+
+        # Вкладка закрытых достижений
         self.tab_locked = ttk.Frame(self.notebook)
         self.notebook.add(self.tab_locked, text="Закрытые (0)")
-        self.locked_listbox = tk.Listbox(self.tab_locked, font=("Arial", 10))
-        self.locked_listbox.pack(expand=True, fill="both", side="left", padx=5, pady=5)
-        self.add_scrollbar(self.tab_locked, self.locked_listbox)
-        self.unlocked_listbox.bind("<Double-1>", self.open_guide)
-        self.locked_listbox.bind("<Double-1>", self.open_guide)
+
+        self.locked_tree = ttk.Treeview(self.tab_locked, columns=("name", "description"), show="headings", height=20)
+        self.locked_tree.heading("name", text="Достижение")
+        self.locked_tree.heading("description", text="Описание")
+        self.locked_tree.column("name", width=250)
+        self.locked_tree.column("description", width=450)
+        self.locked_tree.pack(side="left", fill="both", expand=True, padx=5, pady=5)
+        self.add_scrollbar(self.tab_locked, self.locked_tree)
+
+        # Привязка событий
+        self.unlocked_tree.bind("<Double-1>", self.open_guide)
+        self.locked_tree.bind("<Double-1>", self.open_guide)
+        self.unlocked_tree.bind("<Button-3>", self.show_achievement_context_menu)
+        self.locked_tree.bind("<Button-3>", self.show_achievement_context_menu)
 
     def setup_hotkeys(self):
         self.root.bind_class("Entry", "<Control-v>", lambda e: e.widget.event_generate("<<Paste>>"))
@@ -286,6 +317,25 @@ class SteamAchievementApp:
         widget.focus_set()
         self.context_menu.post(event.x_root, event.y_root)
 
+    def show_achievement_context_menu(self, event):
+        widget = event.widget
+        # Определяем элемент под курсором
+        item = widget.identify_row(event.y)
+        if item:
+            # Выделяем и сохраняем ссылку
+            widget.selection_set(item)
+            widget.focus(item)
+            # Сохраняем имя достижения
+            item_values = widget.item(item)['values']
+            if item_values:
+                raw_name = item_values[0]
+                self.selected_achievement_name = raw_name.replace("✓", "").replace("🔒", "").strip()
+            # Показываем меню
+            self.achievement_context_menu.post(event.x_root, event.y_root)
+        else:
+            # Если кликнули в пустую область — снимаем выделение
+            self.selected_achievement_name = None
+
     def paste_to_focused_widget(self):
         focused = self.root.focus_get()
         if isinstance(focused, tk.Entry):
@@ -293,6 +343,40 @@ class SteamAchievementApp:
                 focused.insert(tk.INSERT, self.root.clipboard_get().strip())
             except tk.TclError:
                 pass
+
+    def open_guide_from_context(self):
+        if self.selected_achievement_name:
+            self.search_guide(self.selected_achievement_name)
+        else:
+            messagebox.showinfo("Информация", "Сначала выберите достижение правым кликом.")
+
+    def copy_achievement_name(self):
+        if self.selected_achievement_name:
+            self.root.clipboard_clear()
+            self.root.clipboard_append(self.selected_achievement_name)
+            messagebox.showinfo("Скопировано", f"Название скопировано:\n{self.selected_achievement_name}")
+        else:
+            messagebox.showinfo("Информация", "Сначала выберите достижение правым кликом.")
+
+    def open_in_steam(self):
+        if self.app_id:
+            url = f"https://steamcommunity.com/stats/{self.app_id}/achievements"
+            webbrowser.open(url)
+        else:
+            messagebox.showinfo("Информация", "App ID не задан.")
+
+    def search_guide(self, achievement_name):
+        if not achievement_name: return
+        url = f"https://www.google.com/search?q={urllib.parse.quote(f'\"{self.game_name}\" ачивка \"{achievement_name}\" гайд')}"
+        webbrowser.open(url)
+
+    def open_guide(self, event):
+        widget = event.widget
+        selection = widget.selection()
+        if not selection: return
+        item = widget.item(selection[0])
+        clean_name = item['values'][0].replace("✓", "").replace("🔒", "").strip()
+        self.search_guide(clean_name)
 
     def load_profile_from_file(self):
         if os.path.exists(CONFIG_FILE):
@@ -307,6 +391,7 @@ class SteamAchievementApp:
                 self.api_key_entry.insert(0, config.get("api_key", "").strip())
                 self.steam_id_entry.insert(0, config.get("steam_id", "").strip())
                 self.app_id_entry.insert(0, app_id.strip())
+                self.app_id = app_id
                 game = get_game_by_app_id(app_id)
                 if game:
                     self.game_entry.delete(0, tk.END)
@@ -324,23 +409,23 @@ class SteamAchievementApp:
     def get_achievement_names_schema(self, api_key, app_id):
         try:
             res = requests.get(STEAM_API_SCHEMA, params={"key": api_key, "appid": app_id, "l": "russian"}, timeout=15)
-            if res.status_code != 200: return {}, ""
+            if res.status_code != 200: return {}, "", {}
             data = res.json()
             game_name = data.get('game', {}).get('gameName', "")
-            ach_map = {ach['name']: ach.get('displayName', ach['name']) for ach in
-                       data.get('game', {}).get('availableGameStats', {}).get('achievements', [])}
-            return ach_map, game_name
-        except Exception:
-            return {}, ""
 
-    def open_guide(self, event):
-        widget = event.widget
-        selection = widget.curselection()
-        if not selection: return
-        clean_name = widget.get(selection[0]).replace("✓", "").replace("🔒", "").strip()
-        if not clean_name: return
-        url = f"https://www.google.com/search?q={urllib.parse.quote(f'\"{self.game_name}\" ачивка \"{clean_name}\" гайд')}"
-        webbrowser.open(url)
+            ach_map = {}
+            desc_map = {}
+            for ach in data.get('game', {}).get('availableGameStats', {}).get('achievements', []):
+                name = ach['name']
+                ach_map[name] = ach.get('displayName', name)
+                description = ach.get('description', '')
+                if not description:
+                    description = "(Описание отсутствует)"
+                desc_map[name] = description
+
+            return ach_map, game_name, desc_map
+        except Exception:
+            return {}, "", {}
 
     def load_data(self):
         api_key = self.api_key_entry.get().strip()
@@ -356,6 +441,8 @@ class SteamAchievementApp:
         if not steam_id.isdigit() or len(steam_id) != 17:
             messagebox.showerror("Ошибка", "Steam ID должен содержать ровно 17 цифр.");
             return
+
+        self.app_id = app_id
 
         if self.save_profile_var.get(): self.save_profile_to_file(api_key, steam_id, app_id)
 
@@ -378,28 +465,41 @@ class SteamAchievementApp:
             player_achievements = user_data.get('playerstats', {}).get('achievements', [])
             if not player_achievements: raise Exception("Достижения не найдены. Убедитесь, что вы запускали игру.")
 
-            schema_names, api_game_name = self.get_achievement_names_schema(api_key, app_id)
+            schema_names, api_game_name, schema_descriptions = self.get_achievement_names_schema(api_key, app_id)
+
             self.game_name = GAME_NAME_CORRECTIONS.get(app_id) or (get_game_by_app_id(app_id)[1] if get_game_by_app_id(
                 app_id) else "") or api_game_name or f"Игра {app_id}"
 
-            self.unlocked_listbox.delete(0, tk.END)
-            self.locked_listbox.delete(0, tk.END)
+            self.unlocked_tree.delete(*self.unlocked_tree.get_children())
+            self.locked_tree.delete(*self.locked_tree.get_children())
+
             unlocked_count = locked_count = 0
+            no_description_count = 0
 
             for ach in player_achievements:
                 tech_name = ach['apiname']
                 display_name = schema_names.get(tech_name) or ach.get('name') or tech_name
+                description = schema_descriptions.get(tech_name, "(Описание отсутствует)")
+
+                if description == "(Описание отсутствует)":
+                    no_description_count += 1
+
                 if ach.get('achieved') == 1:
-                    self.unlocked_listbox.insert(tk.END, f"  ✓  {display_name}");
+                    self.unlocked_tree.insert("", tk.END, values=(f"✓ {display_name}", description))
                     unlocked_count += 1
                 else:
-                    self.locked_listbox.insert(tk.END, f"  🔒  {display_name}");
+                    self.locked_tree.insert("", tk.END, values=(f"🔒 {display_name}", description))
                     locked_count += 1
 
             self.notebook.tab(0, text=f"Открытые ({unlocked_count})")
             self.notebook.tab(1, text=f"Закрытые ({locked_count})")
-            messagebox.showinfo("✅ Готово",
-                                f"Игра: {self.game_name}\nОткрыто: {unlocked_count}\nЗакрыто: {locked_count}\n\n💡 Двойной клик по ачивке — поиск гайда.")
+
+            message = f"Игра: {self.game_name}\nОткрыто: {unlocked_count}\nЗакрыто: {locked_count}"
+            if no_description_count > 0:
+                message += f"\n\n⚠️ У {no_description_count} достижений нет описания (Steam API не предоставляет данные)"
+            message += "\n\n💡 Двойной клик по ачивке — поиск гайда\n💡 Правый клик — дополнительные действия"
+
+            messagebox.showinfo("✅ Готово", message)
 
         except requests.exceptions.Timeout:
             messagebox.showerror("Ошибка", "Превышено время ожидания.")
