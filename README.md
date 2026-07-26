@@ -29,8 +29,8 @@
 
 1. Перейдите по ссылке:
 
-   ** Старая версия без описаний ачивок👉 [https://pixeldrain.com/u/ANboK3bs](https://pixeldrain.com/u/EWyA6q3K)**
-   ** Новая версия с описаниями ачивок👉 [https://pixeldrain.com/u/axyPZPa1](https://pixeldrain.com/u/axyPZPa1)**
+   1.1 ** Старая версия без описаний ачивок👉 [https://pixeldrain.com/u/ANboK3bs](https://pixeldrain.com/u/EWyA6q3K)**
+   1.2 ** Новая версия с описаниями ачивок👉 [https://pixeldrain.com/u/axyPZPa1](https://pixeldrain.com/u/axyPZPa1)**
 
 2. Скачайте архив.
 
