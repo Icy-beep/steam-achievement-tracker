@@ -83,23 +83,27 @@ git clone https://github.com/Icy-beep/steam-achievement-tracker
 
 ---
 
-### 3. Установите зависимости
+### 3. Установите зависимости и запустите программу
+
+**Рекомендуемый способ — через [uv](https://docs.astral.sh/uv/):**
+
+```bash
+uv sync
+uv run steam_app.py
+```
+
+`uv sync` создаст виртуальное окружение (`.venv`) и установит зависимости точно по `uv.lock`. `uv run` запускает программу прямо внутри этого окружения — активировать venv вручную не нужно.
+
+Если `uv` не установлен:
+
+```bash
+pip install uv
+```
+
+**Альтернатива — обычный pip:**
 
 ```bash
 pip install -r requirements.txt
-```
-
-или
-
-```bash
-pip install requests
-```
-
----
-
-### 4. Запустите программу
-
-```bash
 python steam_app.py
 ```
 
