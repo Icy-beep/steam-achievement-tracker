@@ -1,0 +1,18 @@
+[project]
+name = "steam-achievement-tracker"
+version = "1.0.0"
+description = "Настольное приложение для просмотра достижений Steam через Steam Web API"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+dependencies = [
+    "requests>=2.31.0",
+]
+
+[tool.uv]
+package = false
+
+[dependency-groups]
+dev = [
+    "pyinstaller>=6.22.0",
+]
