@@ -53,7 +53,7 @@ class SteamAchievementApp:
         input_frame = tk.Frame(self.root, padx=10, pady=10)
         input_frame.pack(fill="x")
 
-        tk.Label(input_frame, text="🎮 Поиск игры:", font=("Arial", 10, "bold")).grid(
+        tk.Label(input_frame, text="Поиск игры:", font=("Arial", 10, "bold")).grid(
             row=0, column=0, sticky="w", pady=5
         )
         self.game_entry = tk.Entry(input_frame, width=47, font=("Arial", 10))
@@ -366,4 +366,4 @@ class SteamAchievementApp:
         except Exception as e:
             messagebox.showerror("Ошибка", str(e))
         finally:
-            self.load_btn.config(text="🔍 Получить достижения", state="normal")
+            self.load_btn.config(text="Получить достижения", state="normal")
