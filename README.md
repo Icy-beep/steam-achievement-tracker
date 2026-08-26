@@ -27,21 +27,12 @@
 
 Скачайте готовую Windows-версию приложения.
 
-1. Перейдите по ссылке:
+1. Скачайте [Release](https://github.com/Icy-beep/steam-achievement-tracker/releases/tag/1.0.1)
 
-   1.1 ** Старая версия без описаний ачивок =>** [https://pixeldrain.com/u/ANboK3bs](https://pixeldrain.com/u/EWyA6q3K)<br>
-   1.2 ** Новая версия с описаниями ачивок =>** [https://pixeldrain.com/u/axyPZPa1](https://pixeldrain.com/u/axyPZPa1)
-
-2. Скачайте архив.
-
-3. Распакуйте архив в любую папку.
-
-4. Запустите **SteamAchievementTracker.exe**.
-
-> 💡 **Python устанавливать не нужно.** Всё необходимое уже входит в архив.
+2. Запустите **SteamAchievementTracker.exe**.
 
 > [!IMPORTANT]
-> Перед первым запуском подготовьте:
+> Подготовьте:
 >
 > - 🔑 **[Steam API Key](#-получение-steam-api-key)**
 > - 👤 **[Steam ID64](#-как-узнать-steam-id64)**
