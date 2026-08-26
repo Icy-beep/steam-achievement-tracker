@@ -32,13 +32,12 @@ class SteamAchievementApp:
         self.root.geometry("950x700")
         self.game_name = ""
         self.app_id = ""
-        self.selected_achievement_name = None  # Сохраняем выбранное достижение
+        self.selected_achievement_name = None
         init_db()
 
         self.context_menu = tk.Menu(self.root, tearoff=0)
         self.context_menu.add_command(label="Вставить", command=self.paste_to_focused_widget)
 
-        # Контекстное меню для ачивок — создаём динамически
         self.achievement_context_menu = tk.Menu(self.root, tearoff=0)
         self.achievement_context_menu.add_command(label="🔍 Найти гайд", command=self.open_guide_from_context)
         self.achievement_context_menu.add_command(label="📋 Копировать название", command=self.copy_achievement_name)
@@ -75,13 +74,13 @@ class SteamAchievementApp:
         btn_frame = tk.Frame(input_frame)
         btn_frame.grid(row=0, column=2, rowspan=2, padx=5, sticky="n")
         tk.Button(
-            btn_frame, text="📚 База игр", command=self.open_db_manager, bg="#2196F3", fg="white"
+            btn_frame, text="База игр", command=self.open_db_manager, bg="#2196F3", fg="white"
         ).pack(fill="x", pady=2)
         tk.Button(
-            btn_frame, text="📥 Загрузить ТОП игры", command=self.import_popular, bg="#FF9800", fg="white"
+            btn_frame, text="Загрузить список игр", command=self.import_popular, bg="#FF9800", fg="white"
         ).pack(fill="x", pady=2)
         tk.Button(
-            btn_frame, text="🗺 Найти карту игры", command=self.open_game_map_search, bg="#009688", fg="white"
+            btn_frame, text="Найти карту игры", command=self.open_game_map_search, bg="#009688", fg="white"
         ).pack(fill="x", pady=2)
 
         tk.Label(input_frame, text="Steam API Key:").grid(row=2, column=0, sticky="w", pady=2)
@@ -110,7 +109,7 @@ class SteamAchievementApp:
 
         self.load_btn = tk.Button(
             input_frame,
-            text="🔍 Получить достижения",
+            text="Получить достижения",
             command=self.load_data,
             bg="#4CAF50",
             fg="white",

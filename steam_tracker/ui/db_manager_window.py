@@ -89,7 +89,7 @@ def open_db_manager(parent, on_change=None):
 
     btn_frame = tk.Frame(db_window, padx=10, pady=5)
     btn_frame.pack(fill="x")
-    tk.Button(btn_frame, text="➕ Добавить", command=add_game, bg="#4CAF50", fg="white").pack(side="left", padx=5)
-    tk.Button(btn_frame, text="🗑 Удалить", command=delete_game, bg="#f44336", fg="white").pack(side="left", padx=5)
+    tk.Button(btn_frame, text="Добавить", command=add_game, bg="#4CAF50", fg="white").pack(side="left", padx=5)
+    tk.Button(btn_frame, text="Удалить", command=delete_game, bg="#f44336", fg="white").pack(side="left", padx=5)
 
     tk.Label(db_window, text=f"Всего игр в базе: {len(get_all_games())}", font=("Arial", 10)).pack(pady=5)

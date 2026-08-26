@@ -15,6 +15,4 @@ def _load_game_data():
     ]
     return corrections, popular_games
 
-
-# Известные несоответствия/устаревшие названия игр в ответах Steam API
 GAME_NAME_CORRECTIONS, POPULAR_GAMES = _load_game_data()
